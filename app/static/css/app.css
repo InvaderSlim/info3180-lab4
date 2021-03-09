@@ -1,3 +1,15 @@
 body {
     padding-top: 5rem;
 }
+
+#images {
+    display: grid;
+    column-gap: 2em;
+    row-gap: 2em;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+img {
+    width: 400px;
+    height: 400px;
+}

@@ -4,6 +4,8 @@ class Config(object):
     """Base Config Object"""
     DEBUG = False
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'Som3$ec5etK*y'
+    UPLOAD_FOLDER = ('./uploads') or '.uploads'
+    ALLOWED_EXTENSIONS = {'.jpg', '.png'}
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'Password123'
 

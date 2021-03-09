@@ -6,9 +6,9 @@ This file creates your application.
 """
 import os
 from app import app
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
-
+from .forms import UploadForm
 
 ###
 # Routing for your application.
@@ -28,19 +28,37 @@ def about():
 
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
+    root_dir = os.getcwd()
     if not session.get('logged_in'):
         abort(401)
 
     # Instantiate your form class
+    form = UploadForm()
 
     # Validate file upload on submit
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST':
         # Get file data and save to your uploads folder
-
+        img = form.upload.data
+        filename = secure_filename(img.filename)
+        
+        if filename != '':
+            file_ext = os.path.splitext(filename)[1]
+            if file_ext not in app.config['ALLOWED_EXTENSIONS']:
+                flash('Invalid format, try again')
+        
+        img.save(os.path.join( 
+            root_dir, app.config['UPLOAD_FOLDER'], filename
+        ))
         flash('File Saved', 'success')
         return redirect(url_for('home'))
+    
+    if request.method == 'GET':
+        return render_template('upload.html', form=form)
 
-    return render_template('upload.html')
+    return render_template('upload.html', 
+        form=form,
+        template="form-template")
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -99,6 +117,30 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+@app.route("/uploads/<filename>")
+def get_image(filename):
+    root_dir=os.getcwd()
+    return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER']), filename)
+
+@app.route('/files')
+def files():
+    if not session.get('logged_in'):
+        abort(401)
+    images=get_uploaded_images()
+    return render_template('files.html', images=images)    
+
+
+def get_uploaded_images():
+    rootdir = os.getcwd()
+    il=[]
+    for subdir, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
+        for file in files:
+            # return os.path.join(subdir,file)
+            if '.gitkeep' not in file:
+                il.append(file)
+    return il
+    # # return os.listdir('uploads')
 
 
 if __name__ == '__main__':
